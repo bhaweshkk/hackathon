@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Edit {{ team.name }} — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <div class="page-header"><h1 class="page-title">Edit Team</h1></div>
+  <div class="dash-card">
+    <form method="post">{% csrf_token %}
+      <div class="row g-3">
+        <div class="col-12"><label class="form-label">Team Name</label>{{ form.name }}</div>
+        <div class="col-12"><label class="form-label">Description</label>{{ form.description }}</div>
+        <div class="col-md-6"><label class="form-label">Max Team Size</label>{{ form.max_size }}</div>
+        <div class="col-md-6"><label class="form-label">Domain Focus</label>{{ form.domain_focus }}</div>
+        <div class="col-12"><label class="form-label">Looking for Roles</label>{{ form.looking_for_roles }}</div>
+        <div class="col-12"><div class="form-check">{{ form.is_open }} <label class="form-check-label">Open for new members</label></div></div>
+      </div>
+      <div class="form-actions mt-4">
+        <a href="{% url 'teams:detail' pk=team.pk %}" class="btn-outline">Cancel</a>
+        <button type="submit" class="btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
