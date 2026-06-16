@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Edit Your Profile</h1>
+    <p class="page-sub">Keep your profile complete to get better team matches</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="profileForm">
+    {% csrf_token %}
+    <div class="edit-grid">
+      <!-- Basic Info -->
+      <div class="dash-card">
+        <h3 class="card-title">Basic Information</h3>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Full Name *</label>{{ form.full_name }}<div class="form-error">{{ form.full_name.errors.0 }}</div></div>
+          <div class="col-md-6"><label class="form-label">College *</label>{{ form.college }}</div>
+          <div class="col-md-6"><label class="form-label">Branch</label>{{ form.branch }}</div>
+          <div class="col-md-3"><label class="form-label">Year</label>{{ form.year }}</div>
+          <div class="col-md-3"><label class="form-label">Phone</label>{{ form.phone }}</div>
+          <div class="col-12"><label class="form-label">Bio</label>{{ form.bio }}</div>
+          <div class="col-md-6"><label class="form-label">GitHub</label>{{ form.github }}</div>
+          <div class="col-md-6"><label class="form-label">LinkedIn</label>{{ form.linkedin }}</div>
+          <div class="col-md-6"><label class="form-label">Resume Link</label>{{ form.resume_link }}</div>
+          <div class="col-md-6"><label class="form-label">Languages Known</label>{{ form.languages_known }}</div>
+          <div class="col-12"><label class="form-label">Achievements</label>{{ form.achievements }}</div>
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="dash-card">
+        <h3 class="card-title">Hackathon Preferences</h3>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Preferred Role *</label>{{ form.preferred_role }}</div>
+          <div class="col-md-6"><label class="form-label">Availability *</label>{{ form.availability }}</div>
+          <div class="col-md-6"><label class="form-label">Preferred Team Size</label>{{ form.preferred_team_size }}</div>
+          <div class="col-md-6"><label class="form-label">Profile Picture</label>{{ form.avatar }}</div>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div class="dash-card">
+        <div class="card-title-row">
+          <h3 class="card-title">Skills</h3>
+          <button type="button" class="btn-sm-primary" id="addSkillBtn"><i class="bi bi-plus"></i> Add Skill</button>
+        </div>
+        <div id="skillsContainer">
+          {% for ss in skills %}
+          <div class="skill-row" data-index="{{ forloop.counter0 }}">
+            <input type="text" name="skill_names[]" value="{{ ss.skill.name }}" placeholder="Skill name" class="form-input skill-name-input" required>
+            <select name="skill_proficiencies[]" class="form-select skill-select">
+              {% for val, label in proficiency_choices %}
+              <option value="{{ val }}" {% if ss.proficiency == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <input type="number" name="skill_experiences[]" value="{{ ss.years_experience }}" step="0.5" min="0" max="20" placeholder="Years" class="form-input exp-input">
+            <button type="button" class="btn-remove-skill"><i class="bi bi-trash"></i></button>
+          </div>
+          {% empty %}
+          <div class="skill-row" data-index="0">
+            <input type="text" name="skill_names[]" placeholder="e.g. Python, React, Figma" class="form-input skill-name-input">
+            <select name="skill_proficiencies[]" class="form-select skill-select">
+              {% for val, label in proficiency_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
+            <input type="number" name="skill_experiences[]" step="0.5" min="0" placeholder="Yrs" class="form-input exp-input">
+            <button type="button" class="btn-remove-skill"><i class="bi bi-trash"></i></button>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="skill-template d-none">
+          <div class="skill-row">
+            <input type="text" name="skill_names[]" placeholder="e.g. Python, React, Figma" class="form-input skill-name-input">
+            <select name="skill_proficiencies[]" class="form-select skill-select">
+              {% for val, label in proficiency_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
+            <input type="number" name="skill_experiences[]" step="0.5" min="0" placeholder="Yrs" class="form-input exp-input">
+            <button type="button" class="btn-remove-skill"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interests -->
+      <div class="dash-card">
+        <h3 class="card-title">Domain Interests</h3>
+        <p class="text-muted small mb-3">Select the domains you're interested in. First selection = primary interest.</p>
+        <div class="domain-grid">
+          {% for domain in all_domains %}
+          <label class="domain-chip {% for sd in selected_domains %}{% if sd.domain.id == domain.id %}selected{% endif %}{% endfor %}">
+            <input type="checkbox" name="domain_ids[]" value="{{ domain.id }}"
+              {% for sd in selected_domains %}{% if sd.domain.id == domain.id %}checked{% endif %}{% endfor %}>
+            {{ domain.name }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'profiles:detail' pk=profile.pk %}" class="btn-outline">Cancel</a>
+      <button type="submit" class="btn-primary">Save Profile <i class="bi bi-check2"></i></button>
+    </div>
+  </form>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('addSkillBtn').addEventListener('click', () => {
+  const template = document.querySelector('.skill-template .skill-row').cloneNode(true);
+  document.getElementById('skillsContainer').appendChild(template);
+  attachRemoveHandler(template.querySelector('.btn-remove-skill'));
+});
+document.querySelectorAll('.btn-remove-skill').forEach(btn => attachRemoveHandler(btn));
+function attachRemoveHandler(btn) {
+  btn.addEventListener('click', function() {
+    const row = this.closest('.skill-row');
+    if (document.querySelectorAll('#skillsContainer .skill-row').length > 1) row.remove();
+  });
+}
+// Style domain chips
+document.querySelectorAll('.domain-chip input').forEach(cb => {
+  cb.addEventListener('change', function() {
+    this.closest('.domain-chip').classList.toggle('selected', this.checked);
+  });
+});
+</script>
+{% endblock %}
+{% endblock %}
