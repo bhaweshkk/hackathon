@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Add Hackathon — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <div class="page-header"><h1 class="page-title">Add Hackathon</h1></div>
+  <div class="dash-card">
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      <div class="row g-3">
+        <div class="col-12"><label class="form-label">Title *</label>{{ form.title }}</div>
+        <div class="col-md-6"><label class="form-label">Organizer *</label>{{ form.organizer }}</div>
+        <div class="col-md-6"><label class="form-label">Domain</label>{{ form.domain }}</div>
+        <div class="col-12"><label class="form-label">Description *</label>{{ form.description }}</div>
+        <div class="col-md-4"><label class="form-label">Mode</label>{{ form.mode }}</div>
+        <div class="col-md-4"><label class="form-label">Start Date</label>{{ form.start_date }}</div>
+        <div class="col-md-4"><label class="form-label">End Date</label>{{ form.end_date }}</div>
+        <div class="col-md-4"><label class="form-label">Registration Deadline *</label>{{ form.registration_deadline }}</div>
+        <div class="col-md-4"><label class="form-label">Min Team Size</label>{{ form.min_team_size }}</div>
+        <div class="col-md-4"><label class="form-label">Max Team Size</label>{{ form.max_team_size }}</div>
+        <div class="col-md-6"><label class="form-label">Prize Pool</label>{{ form.prize_pool }}</div>
+        <div class="col-md-6"><label class="form-label">Website</label>{{ form.website }}</div>
+        <div class="col-12"><label class="form-label">Tags (comma-separated)</label>{{ form.tags }}</div>
+        <div class="col-12"><label class="form-label">Eligibility</label>{{ form.eligibility }}</div>
+        <div class="col-12"><div class="form-check">{{ form.is_featured }} <label class="form-check-label">Feature this hackathon</label></div></div>
+      </div>
+      <div class="form-actions mt-4">
+        <a href="{% url 'hackathons:list' %}" class="btn-outline">Cancel</a>
+        <button type="submit" class="btn-primary">Add Hackathon</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
