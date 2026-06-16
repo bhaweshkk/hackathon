@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <div class="page-header">
+    <h1 class="page-title">Notifications</h1>
+    <a href="{% url 'messaging:mark_all_read' %}" class="btn-outline">Mark all read</a>
+  </div>
+  <div class="dash-card p-0">
+    {% for n in notifications %}
+    <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+      <div class="notif-icon notif-{{ n.notification_type }}">
+        <i class="bi bi-{% if n.notification_type == 'invite' %}envelope{% elif n.notification_type == 'message' %}chat{% elif n.notification_type == 'connection' %}person-plus{% elif n.notification_type == 'application' %}trophy{% else %}bell{% endif %}-fill"></i>
+      </div>
+      <div class="notif-content">
+        <div class="notif-title">{{ n.title }}</div>
+        <div class="notif-msg">{{ n.message }}</div>
+        <div class="notif-time">{{ n.created_at|timesince }} ago</div>
+      </div>
+      {% if n.link %}<a href="{{ n.link }}" class="btn-sm-outline">View</a>{% endif %}
+    </div>
+    {% empty %}
+    <div class="empty-state py-5"><i class="bi bi-bell display-4 text-muted"></i><p class="mt-3">No notifications yet.</p></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
