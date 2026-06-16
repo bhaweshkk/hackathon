@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}{{ team.name }} Chat — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container narrow chat-page">
+  <div class="chat-header">
+    <a href="{% url 'teams:detail' pk=team.pk %}" class="btn-icon"><i class="bi bi-arrow-left"></i></a>
+    <div class="chat-avatar team-chat-icon"><i class="bi bi-people-fill"></i></div>
+    <div>
+      <div class="chat-name">{{ team.name }}</div>
+      <div class="chat-sub">Team Chat · {{ team.member_count }} members</div>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    {% for msg in messages %}
+    <div class="msg-wrap {% if msg.sender == request.user %}mine{% else %}theirs{% endif %}">
+      {% if msg.sender != request.user %}<div class="msg-sender-name">{{ msg.sender.first_name }}</div>{% endif %}
+      <div class="msg-bubble">{{ msg.content }}</div>
+      <div class="msg-time">{{ msg.created_at|time:"H:i" }}</div>
+    </div>
+    {% empty %}<div class="chat-empty"><p>Be the first to say something!</p></div>{% endfor %}
+  </div>
+  <form method="post" class="chat-input-form">
+    {% csrf_token %}
+    {{ form.content }}
+    {% if form.content.errors %}
+    <div class="form-error">{{ form.content.errors.0 }}</div>
+    {% endif %}
+    <button type="submit" class="chat-send-btn"><i class="bi bi-send-fill"></i></button>
+  </form>
+</div>
+{% block extra_js %}
+<script>const cm=document.getElementById('chatMessages');if(cm)cm.scrollTop=cm.scrollHeight;</script>
+{% endblock %}
+{% endblock %}
