@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Discover Students — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div><h1 class="page-title">Discover Students</h1><p class="page-sub">Find the perfect teammate for your next hackathon</p></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="dash-card filter-card">
+    <form method="get" class="filter-form">
+      <div class="filter-row">
+        <div class="filter-item flex-grow-1">
+          <input type="text" name="q" value="{{ form.q.value|default:'' }}" placeholder="Search by name, college, skills..." class="form-input">
+        </div>
+        <div class="filter-item">{{ form.skill }}</div>
+        <div class="filter-item">{{ form.role }}</div>
+        <div class="filter-item">{{ form.year }}</div>
+        <div class="filter-item">{{ form.availability }}</div>
+        <button type="submit" class="btn-primary">Filter</button>
+        <a href="{% url 'profiles:list' %}" class="btn-outline">Clear</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="students-grid">
+    {% for profile in profiles %}
+    <div class="student-card">
+      <div class="student-card-top">
+        {% if profile.avatar %}
+          <img src="{{ profile.avatar.url }}" class="student-avatar" alt="{{ profile.full_name }}">
+        {% else %}
+          <div class="student-avatar-placeholder">{{ profile.full_name|first|upper }}</div>
+        {% endif %}
+        <span class="avail-dot avail-{{ profile.availability }}" title="{{ profile.get_availability_display }}"></span>
+      </div>
+      <div class="student-card-body">
+        <h4 class="student-name">{{ profile.full_name }}</h4>
+        <p class="student-meta">{{ profile.college }}</p>
+        <p class="student-role"><i class="bi bi-briefcase me-1"></i>{{ profile.get_preferred_role_display }}</p>
+        <div class="student-skills">
+          {% for ss in profile.student_skills.all|slice:":4" %}
+            <span class="skill-chip">{{ ss.skill.name }}</span>
+          {% endfor %}
+          {% if profile.student_skills.count > 4 %}<span class="skill-chip muted">+{{ profile.student_skills.count|add:"-4" }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="student-card-footer">
+        <span class="student-stat"><i class="bi bi-trophy"></i> {{ profile.hackathons_participated }}</span>
+        <span class="student-stat"><i class="bi bi-people"></i> {{ profile.teams_participated }}</span>
+        <a href="{% url 'profiles:detail' pk=profile.pk %}" class="btn-sm-primary">View</a>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full empty-state">
+      <i class="bi bi-people display-4 text-muted"></i>
+      <p class="mt-2">No students found matching your filters.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
