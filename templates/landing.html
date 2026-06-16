@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}HackTeam AI — Find Your Dream Hackathon Team{% endblock %}
+{% block public_content %}
+{% load static %}
+<div class="landing-page">
+  <!-- Nav -->
+  <nav class="landing-nav fade-down">
+    <a href="/" class="brand-link"><span class="brand-icon">⚡</span> HackTeam AI</a>
+    <div class="landing-nav-links">
+      <a href="{% url 'hackathons:list' %}">Hackathons</a>
+      <a href="{% url 'analytics:leaderboard' %}">Leaderboard</a>
+      <a href="{% url 'accounts:login' %}" class="btn-outline-light-sm">Log In</a>
+      <a href="{% url 'accounts:signup' %}" class="btn-primary-sm">Sign Up Free</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-section">
+    <div class="hero-content fade-up">
+      <div class="hero-badge">🚀 AI-Powered Team Matching</div>
+      <h1 class="hero-title">Build Your<br><span class="gradient-text">Winning Hackathon Team</span></h1>
+      <p class="hero-sub">Stop wasting time searching. HackTeam AI matches you with complementary teammates based on your skills, goals, and preferred hackathon domains.</p>
+      <div class="hero-cta">
+        <a href="{% url 'accounts:signup' %}" class="btn-hero-primary">Get Started Free <i class="bi bi-arrow-right"></i></a>
+        <a href="{% url 'hackathons:list' %}" class="btn-hero-secondary">Browse Hackathons</a>
+      </div>
+      <div class="hero-stats fade-up">
+        <div class="stat-pill"><strong>{{ student_count }}</strong> Students</div>
+        <div class="stat-pill"><strong>{{ team_count }}</strong> Teams Formed</div>
+        <div class="stat-pill"><strong>{{ hackathon_count }}</strong> Hackathons</div>
+      </div>
+    </div>
+    <div class="hero-visual fade-left">
+      {% if featured_hackathon %}
+      <div class="match-card-demo">
+        <div class="demo-label">Featured Hackathon</div>
+        <h3 class="demo-score" style="font-size:2rem;">{{ featured_hackathon.title }}</h3>
+        <div class="demo-tags">
+          <span class="tag-chip">{{ featured_hackathon.get_domain_display }}</span>
+          <span class="tag-chip">{{ featured_hackathon.get_mode_display }}</span>
+        </div>
+        <div class="demo-reason">Organized by {{ featured_hackathon.organizer }}</div>
+        <div class="demo-reason">Apply by {{ featured_hackathon.registration_deadline }}</div>
+        <a href="{% url 'hackathons:detail' pk=featured_hackathon.pk %}" class="btn-sm-primary mt-3">View Details</a>
+      </div>
+      {% else %}
+      <div class="match-card-demo">
+        <div class="demo-label">Real Hackathons</div>
+        <div class="demo-score">Find active events<br>and build your team</div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section fade-up">
+    <h2 class="section-title">Everything you need to win</h2>
+    <div class="features-grid">
+      <div class="feature-card fade-up">
+        <div class="feature-icon">🎯</div>
+        <h3>Smart Matching</h3>
+        <p>AI scores potential teammates on skill complementarity, role balance, and domain interests.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">📊</div>
+        <h3>Skill Gap Analysis</h3>
+        <p>Know exactly what to learn next. Get personalized learning paths for your target role.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">💬</div>
+        <h3>Team Communication</h3>
+        <p>DM teammates, chat in team rooms, send invites — all in one place.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">🏆</div>
+        <h3>Hackathon Tracker</h3>
+        <p>Discover upcoming hackathons, apply with your team, and track your competition history.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">📈</div>
+        <h3>Analytics Dashboard</h3>
+        <p>Visual stats on your participation, skill distribution, and team performance over time.</p>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">🔍</div>
+        <h3>Student Discovery</h3>
+        <p>Filter {{ student_count }} student profiles by skill, role, year, domain and availability.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="cta-banner fade-up">
+    <h2>Ready to build your dream team?</h2>
+    <p>Join {{ student_count }} registered students and start matching with real teammates today.</p>
+    <a href="{% url 'accounts:signup' %}" class="btn-hero-primary">Create Your Profile →</a>
+  </section>
+
+  <footer class="landing-footer fade-up">
+    <p>© 2024 HackTeam AI — Built for hackers, by hackers</p>
+  </footer>
+</div>
+{% endblock %}
