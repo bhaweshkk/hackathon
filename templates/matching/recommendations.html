@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Find Teammates — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div><h1 class="page-title">AI Team Recommendations</h1>
+    <p class="page-sub">Matches scored by skill complement, role balance, and domain overlap</p></div>
+  </div>
+
+  <div class="dash-card mb-4">
+    <form method="get" class="filter-form">
+      <div class="filter-row">
+        <div class="filter-item">{{ form.q }}</div>
+        <div class="filter-item">{{ form.role }}</div>
+        <div class="filter-item">{{ form.domain }}</div>
+        <div class="filter-item">{{ form.availability }}</div>
+        <div class="filter-item filter-actions">
+          <button type="submit" class="btn-sm-primary">Filter</button>
+          <a href="{% url 'matching:recommendations' %}" class="btn-sm-outline">Reset</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Skill Gap Card -->
+  <div class="dash-card mb-4">
+    <div class="skill-gap-header">
+      <div>
+        <h3 class="card-title">Your Skill Gap Analysis</h3>
+        <p class="text-muted">Target role: <strong>{{ skill_gaps.role|title }}</strong> · {{ skill_gaps.completion_pct }}% skill coverage</p>
+      </div>
+    </div>
+    <div class="progress-bar-wrap mb-3">
+      <div class="progress-bar-fill" style="width:{{ skill_gaps.completion_pct }}%"></div>
+    </div>
+    {% if skill_gaps.missing_skills %}
+    <div class="gap-section">
+      <h5 class="gap-title">Missing skills for your role:</h5>
+      <div class="gap-skills">
+        {% for skill in skill_gaps.missing_skills %}
+        <span class="skill-chip missing">{{ skill }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    {% if skill_gaps.learning_path %}
+    <div class="gap-section mt-3">
+      <h5 class="gap-title">Recommended Learning Path:</h5>
+      <div class="learning-path">
+        {% for step in skill_gaps.learning_path %}
+        <div class="lp-step lp-{{ step.level }}">
+          <span class="lp-level">{{ step.level|title }}</span>
+          <span class="lp-skill">{{ step.skill }}</span>
+          <a href="https://{{ step.resource }}" target="_blank" class="lp-resource">{{ step.resource }}</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Team Suggestion -->
+  {% if team_suggestion.team %}
+  <div class="dash-card mb-4">
+    <h3 class="card-title">Suggested Team for You</h3>
+    <p class="text-muted mb-3">A balanced 4-person team built around your <strong>{{ my_profile.get_preferred_role_display }}</strong> role</p>
+    <div class="suggested-team">
+      <!-- You -->
+      <div class="suggested-member you-card">
+        <div class="sm-avatar">{{ my_profile.full_name|first|upper }}</div>
+        <div class="sm-name">You ({{ my_profile.get_preferred_role_display }})</div>
+        <div class="sm-badge">YOU</div>
+      </div>
+      {% for item in team_suggestion.team %}
+      <div class="suggested-member">
+        <div class="sm-avatar">{{ item.profile.full_name|first|upper }}</div>
+        <a href="{% url 'profiles:detail' pk=item.profile.pk %}" class="sm-name">{{ item.profile.full_name }}</a>
+        <div class="sm-role">{{ item.profile.get_preferred_role_display }}</div>
+        <div class="sm-score">{{ item.score|floatformat:0 }}% match</div>
+      </div>
+      {% endfor %}
+      {% for role in team_suggestion.missing_roles %}
+      <div class="suggested-member missing-slot">
+        <div class="sm-avatar missing"><i class="bi bi-person-plus"></i></div>
+        <div class="sm-name text-muted">Need: {{ role|title }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Top Matches -->
+  <h3 class="section-heading">Top Teammate Matches</h3>
+  <div class="matches-grid">
+    {% for profile, result in top_matches %}
+    <div class="match-card">
+      <div class="match-score-ring">
+        <svg viewBox="0 0 36 36" class="ring-svg">
+          <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          <path class="ring-fill" stroke-dasharray="{{ result.total }}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+        </svg>
+        <div class="ring-num">{{ result.total|floatformat:0 }}<span>%</span></div>
+      </div>
+      <div class="match-info">
+        <h4 class="match-name"><a href="{% url 'profiles:detail' pk=profile.pk %}">{{ profile.full_name }}</a></h4>
+        <p class="match-meta">{{ profile.college }} · {{ profile.get_preferred_role_display }}</p>
+        <div class="match-scores">
+          <div class="mscore"><span class="mscore-label">Skill</span><div class="mscore-bar"><div style="width:{{ result.skill_score|floatformat:0 }}%"></div></div></div>
+          <div class="mscore"><span class="mscore-label">Domain</span><div class="mscore-bar"><div style="width:{{ result.domain_score|floatformat:0 }}%"></div></div></div>
+          <div class="mscore"><span class="mscore-label">Role</span><div class="mscore-bar"><div style="width:{{ result.role_score|floatformat:0 }}%"></div></div></div>
+        </div>
+        {% if result.reasons %}
+        <div class="match-reasons">
+          {% for reason in result.reasons|slice:":2" %}
+          <div class="reason-item"><i class="bi bi-check-circle-fill text-success me-1"></i>{{ reason }}</div>
+          {% endfor %}
+          {% for warn in result.warnings %}
+          <div class="reason-item warn"><i class="bi bi-exclamation-circle-fill text-warning me-1"></i>{{ warn }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="match-actions">
+        <a href="{% url 'profiles:detail' pk=profile.pk %}" class="btn-sm-primary">View Profile</a>
+        <a href="{% url 'matching:detail' profile_pk=profile.pk %}" class="btn-sm-outline">Full Analysis</a>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state"><p>No matches found. Complete your profile to get recommendations!</p></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
