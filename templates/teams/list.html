@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Teams — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div><h1 class="page-title">Teams</h1><p class="page-sub">Open teams looking for members</p></div>
+    <a href="{% url 'teams:create' %}" class="btn-primary"><i class="bi bi-plus me-1"></i>Create Team</a>
+  </div>
+
+  {% if my_teams %}
+  <div class="dash-card mb-4">
+    <h3 class="card-title">My Teams</h3>
+    <div class="teams-row">
+      {% for team in my_teams %}
+      <a href="{% url 'teams:detail' pk=team.pk %}" class="my-team-chip">
+        <i class="bi bi-people-fill me-1"></i>{{ team.name }}
+        <span class="badge-status-{{ team.status }} ms-1">{{ team.get_status_display }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="teams-grid">
+    {% for team in teams %}
+    <div class="team-card">
+      <div class="team-card-header">
+        <div class="team-card-icon"><i class="bi bi-diagram-3-fill"></i></div>
+        <div>
+          <h4 class="team-card-name">{{ team.name }}</h4>
+          <span class="badge-domain">{{ team.get_domain_focus_display|default:"Open Domain" }}</span>
+        </div>
+        <span class="team-size-badge">{{ team.member_count }}/{{ team.max_size }}</span>
+      </div>
+      {% if team.description %}
+      <p class="team-desc">{{ team.description|truncatechars:120 }}</p>
+      {% endif %}
+      {% if team.looking_for_roles %}
+      <div class="looking-for">
+        <span class="looking-label">Looking for:</span>
+        {% for role in team.looking_for_roles.split %}
+          <span class="role-chip">{{ role }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="team-card-footer">
+        <span class="team-leader"><i class="bi bi-person-fill me-1"></i>{{ team.leader.username }}</span>
+        <a href="{% url 'teams:detail' pk=team.pk %}" class="btn-sm-primary">View Team</a>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state col-span-full">
+      <i class="bi bi-diagram-3 display-4 text-muted"></i>
+      <p>No open teams found. Be the first to create one!</p>
+      <a href="{% url 'teams:create' %}" class="btn-primary mt-2">Create Team</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
