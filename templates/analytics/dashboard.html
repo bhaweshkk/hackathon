@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Welcome back, {{ profile.full_name|default:request.user.first_name }} 👋</h1>
+      <p class="page-sub">{{ profile.college }} · {{ profile.get_year_display }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'matching:recommendations' %}" class="btn-primary"><i class="bi bi-stars me-1"></i>Find Teammates</a>
+      <a href="{% url 'teams:create' %}" class="btn-outline"><i class="bi bi-plus me-1"></i>New Team</a>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:var(--accent-light)"><i class="bi bi-diagram-3-fill" style="color:var(--accent)"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ total_teams }}</div>
+        <div class="stat-label">Teams Joined</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef3c7"><i class="bi bi-trophy-fill" style="color:#d97706"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ total_hackathons }}</div>
+        <div class="stat-label">Hackathons Applied</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dcfce7"><i class="bi bi-patch-check-fill" style="color:#16a34a"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ profile.wins }}</div>
+        <div class="stat-label">Wins</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fce7f3"><i class="bi bi-lightning-fill" style="color:#db2777"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ profile.student_skills.count }}</div>
+        <div class="stat-label">Skills Listed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- Left column -->
+    <div class="dash-left">
+      <!-- Profile completion -->
+      {% if profile.completion_percentage < 80 %}
+      <div class="dash-card alert-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h3 class="card-title mb-0">Complete your profile</h3>
+          <span class="badge-accent">{{ profile.completion_percentage }}%</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" data-width="{{ profile.completion_percentage }}"></div></div>
+        <a href="{% url 'profiles:edit' %}" class="btn-sm-primary mt-3">Edit Profile →</a>
+      </div>
+      {% endif %}
+
+      <!-- Skill Chart -->
+      {% if skill_data_json != '[]' %}
+      <div class="dash-card">
+        <h3 class="card-title">Your Skills</h3>
+        <canvas id="skillChart" height="200"></canvas>
+      </div>
+      {% endif %}
+
+      <!-- Application Stats -->
+      <div class="dash-card">
+        <h3 class="card-title">Application Status</h3>
+        <div class="app-stats-grid">
+          <div class="app-stat"><span class="app-stat-num text-primary">{{ app_stats.applied }}</span><span class="app-stat-label">Applied</span></div>
+          <div class="app-stat"><span class="app-stat-num text-warning">{{ app_stats.shortlisted }}</span><span class="app-stat-label">Shortlisted</span></div>
+          <div class="app-stat"><span class="app-stat-num text-success">{{ app_stats.winner }}</span><span class="app-stat-label">Won</span></div>
+          <div class="app-stat"><span class="app-stat-num text-danger">{{ app_stats.rejected }}</span><span class="app-stat-label">Rejected</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="dash-right">
+      <!-- Active Teams -->
+      <div class="dash-card">
+        <div class="card-title-row">
+          <h3 class="card-title">My Active Teams</h3>
+          <a href="{% url 'teams:list' %}" class="card-link">View All</a>
+        </div>
+        {% if active_teams %}
+          {% for tm in active_teams %}
+          <div class="team-row">
+            <div class="team-row-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="team-row-body">
+              <a href="{% url 'teams:detail' pk=tm.team.pk %}" class="team-row-name">{{ tm.team.name }}</a>
+              <span class="team-row-sub">{{ tm.team.get_status_display }} · {{ tm.team.member_count }}/{{ tm.team.max_size }} members</span>
+            </div>
+            <span class="badge-role">{{ tm.team_role }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state-sm">
+            <p>No active teams yet.</p>
+            <a href="{% url 'teams:create' %}" class="btn-sm-primary">Create Team</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Recent Hackathons -->
+      <div class="dash-card">
+        <div class="card-title-row">
+          <h3 class="card-title">Upcoming Hackathons</h3>
+          <a href="{% url 'hackathons:list' %}" class="card-link">View All</a>
+        </div>
+        {% for h in recent_hackathons %}
+        <div class="hackathon-row">
+          <div class="hackathon-row-body">
+            <a href="{% url 'hackathons:detail' pk=h.pk %}" class="hackathon-row-name">{{ h.title }}</a>
+            <span class="hackathon-row-sub">{{ h.organizer }} · <span class="badge-mode-{{ h.mode }}">{{ h.mode }}</span></span>
+          </div>
+          <span class="deadline-chip">{{ h.registration_deadline }}</span>
+        </div>
+        {% empty %}
+          <p class="text-muted small">No upcoming hackathons.</p>
+        {% endfor %}
+      </div>
+
+      <!-- Notifications -->
+      <div class="dash-card">
+        <div class="card-title-row">
+          <h3 class="card-title">Recent Activity</h3>
+          <a href="{% url 'messaging:notifications' %}" class="card-link">All</a>
+        </div>
+        {% for n in recent_notifications %}
+        <div class="notif-row">
+          <div class="notif-icon notif-{{ n.notification_type }}"><i class="bi bi-{% if n.notification_type == 'invite' %}envelope{% elif n.notification_type == 'message' %}chat{% elif n.notification_type == 'connection' %}person-plus{% else %}bell{% endif %}-fill"></i></div>
+          <div class="notif-body">
+            <div class="notif-title">{{ n.title }}</div>
+            <div class="notif-time">{{ n.created_at|timesince }} ago</div>
+          </div>
+          {% if not n.is_read %}<span class="unread-dot"></span>{% endif %}
+        </div>
+        {% empty %}
+          <p class="text-muted small">No recent activity.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Initialize skill data from Django template
+  window.skillDataJson = '{{ skill_data_json|safe }}';
+</script>
+<script>
+(function () {
+  let skillData = [];
+  try {
+    skillData = JSON.parse(window.skillDataJson);
+  } catch (e) {
+    console.error('Failed to parse skill data:', e);
+    return;
+  }
+  
+  function renderSkillChart() {
+    if (typeof Chart === 'undefined' || !skillData.length) return;
+    const canvas = document.getElementById('skillChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: skillData.map(s => s.skill),
+        datasets: [{
+          label: 'Proficiency',
+          data: skillData.map(s => s.level),
+          backgroundColor: skillData.map((_, i) => `hsl(${220 + i * 15}, 80%, 60%)`),
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 0, max: 100, ticks: { callback: v => ['','Beginner','','Intermediate','','Advanced','','Expert',''][Math.round(v/12)] || v } }
+        }
+      }
+    });
+  }
+  
+  function applyProgressBar() {
+    const progressBar = document.querySelector('[data-width]');
+    if (progressBar) {
+      const width = progressBar.dataset.width;
+      progressBar.style.width = width + '%';
+    }
+  }
+  
+  if (typeof Chart !== 'undefined') {
+    renderSkillChart();
+  } else {
+    window.addEventListener('load', renderSkillChart);
+  }
+  
+  applyProgressBar();
+})();
+</script>
+{% endblock %}
