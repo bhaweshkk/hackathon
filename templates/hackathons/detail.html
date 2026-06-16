@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}{{ hackathon.title }} — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <div class="dash-card">
+    <div class="hdetail-header">
+      <div class="hdetail-icon"><i class="bi bi-trophy-fill"></i></div>
+      <div>
+        <h1 class="hdetail-title">{{ hackathon.title }}</h1>
+        <p class="hdetail-org">by {{ hackathon.organizer }}</p>
+        <div class="hdetail-badges">
+          <span class="badge-mode-{{ hackathon.mode }}">{{ hackathon.get_mode_display }}</span>
+          <span class="badge-status-{{ hackathon.status }}">{{ hackathon.get_status_display }}</span>
+          {% if hackathon.domain %}<span class="badge-domain">{{ hackathon.get_domain_display }}</span>{% endif %}
+        </div>
+      </div>
+      {% if request.user.is_authenticated %}
+      <form method="post" action="{% url 'hackathons:bookmark' pk=hackathon.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-icon {% if is_bookmarked %}bookmarked{% endif %}" title="Bookmark">
+          <i class="bi bi-bookmark{% if is_bookmarked %}-fill{% endif %}"></i>
+        </button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="hdetail-body mt-4">
+      <p>{{ hackathon.description }}</p>
+
+      <div class="info-grid mt-4">
+        <div class="info-item"><span class="info-label">Start Date</span><span>{{ hackathon.start_date }}</span></div>
+        <div class="info-item"><span class="info-label">End Date</span><span>{{ hackathon.end_date }}</span></div>
+        <div class="info-item"><span class="info-label">Registration Deadline</span><span class="text-danger">{{ hackathon.registration_deadline }}</span></div>
+        <div class="info-item"><span class="info-label">Team Size</span><span>{{ hackathon.min_team_size }}–{{ hackathon.max_team_size }} members</span></div>
+        {% if hackathon.prize_pool %}<div class="info-item"><span class="info-label">Prize Pool</span><span class="text-success fw-bold">{{ hackathon.prize_pool }}</span></div>{% endif %}
+        {% if hackathon.eligibility %}<div class="info-item"><span class="info-label">Eligibility</span><span>{{ hackathon.eligibility }}</span></div>{% endif %}
+      </div>
+
+      {% if hackathon.tags %}
+      <div class="mt-3">
+        {% for tag in hackathon.tag_list %}<span class="skill-chip">{{ tag }}</span>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if hackathon.website %}
+      <a href="{{ hackathon.website }}" target="_blank" class="btn-outline mt-3 d-inline-flex align-items-center gap-2">
+        <i class="bi bi-globe"></i> Official Website
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if request.user.is_authenticated %}
+  <div class="dash-card mt-4">
+    <h3 class="card-title">Apply with Your Team</h3>
+    {% if applied_team %}
+      <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i>
+        Applied with <strong>{{ applied_team.team.name }}</strong> — Status: <strong>{{ applied_team.get_status_display }}</strong>
+      </div>
+    {% elif user_teams %}
+      <form method="post" action="{% url 'hackathons:apply' pk=hackathon.pk %}">
+        {% csrf_token %}
+        <div class="d-flex gap-3 align-items-end">
+          <div class="flex-grow-1">
+            <label class="form-label">Select Team</label>
+            <select name="team_id" class="form-select">
+              {% for team in user_teams %}<option value="{{ team.pk }}">{{ team.name }} ({{ team.member_count }} members)</option>{% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn-primary">Apply Now</button>
+        </div>
+      </form>
+    {% else %}
+      <p class="text-muted">You need to be a team leader to apply. <a href="{% url 'teams:create' %}">Create a team first →</a></p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
