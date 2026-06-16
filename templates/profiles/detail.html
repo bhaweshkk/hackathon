@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}{{ profile.full_name }} — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="profile-hero">
+    <div class="profile-avatar-wrap">
+      {% if profile.avatar %}
+        <img src="{{ profile.avatar.url }}" class="profile-avatar" alt="{{ profile.full_name }}">
+      {% else %}
+        <div class="profile-avatar-placeholder">{{ profile.full_name|first|upper }}</div>
+      {% endif %}
+      <span class="avail-badge avail-{{ profile.availability }}">{{ profile.get_availability_display }}</span>
+    </div>
+    <div class="profile-hero-info">
+      <h1>{{ profile.full_name }}</h1>
+      <p class="profile-meta">{{ profile.college }} · {{ profile.branch }} · {{ profile.get_year_display }}</p>
+      <p class="profile-role"><i class="bi bi-briefcase-fill me-1"></i>{{ profile.get_preferred_role_display }}</p>
+      {% if profile.bio %}<p class="profile-bio">{{ profile.bio }}</p>{% endif %}
+      <div class="profile-links">
+        {% if profile.github %}<a href="{{ profile.github }}" target="_blank" class="social-link"><i class="bi bi-github"></i> GitHub</a>{% endif %}
+        {% if profile.linkedin %}<a href="{{ profile.linkedin }}" target="_blank" class="social-link"><i class="bi bi-linkedin"></i> LinkedIn</a>{% endif %}
+        {% if profile.resume_link %}<a href="{{ profile.resume_link }}" target="_blank" class="social-link"><i class="bi bi-file-person"></i> Resume</a>{% endif %}
+      </div>
+      <div class="profile-actions mt-3">
+        {% if is_own %}
+          <a href="{% url 'profiles:edit' %}" class="btn-primary"><i class="bi bi-pencil me-1"></i>Edit Profile</a>
+        {% else %}
+          {% if connection_status == 'accepted' %}
+            <a href="{% url 'messaging:conversation' user_pk=profile.user.pk %}" class="btn-primary"><i class="bi bi-chat me-1"></i>Message</a>
+            <span class="badge-connected">Connected</span>
+          {% elif connection_status == 'pending' %}
+            <span class="badge-pending">Request Pending</span>
+          {% else %}
+            <form method="post" action="{% url 'teams:connect' user_pk=profile.user.pk %}" style="display:inline">
+              {% csrf_token %}<button type="submit" class="btn-primary"><i class="bi bi-person-plus me-1"></i>Connect</button>
+            </form>
+          {% endif %}
+          <a href="{% url 'matching:detail' profile_pk=profile.pk %}" class="btn-outline"><i class="bi bi-stars me-1"></i>Match Score</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="profile-stats-col">
+      <div class="pstat"><div class="pstat-num">{{ profile.hackathons_participated }}</div><div class="pstat-label">Hackathons</div></div>
+      <div class="pstat"><div class="pstat-num">{{ profile.teams_participated }}</div><div class="pstat-label">Teams</div></div>
+      <div class="pstat"><div class="pstat-num">{{ profile.wins }}</div><div class="pstat-label">Wins</div></div>
+    </div>
+  </div>
+
+  <div class="profile-body">
+    <!-- Skills -->
+    <div class="dash-card">
+      <h3 class="card-title">Skills</h3>
+      {% if skills %}
+      <div class="skills-grid">
+        {% for ss in skills %}
+        <div class="skill-badge skill-{{ ss.proficiency }}">
+          <span class="skill-name">{{ ss.skill.name }}</span>
+          <span class="skill-level">{{ ss.get_proficiency_display }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}<p class="text-muted">No skills listed yet.</p>{% endif %}
+    </div>
+
+    <!-- Interests -->
+    <div class="dash-card">
+      <h3 class="card-title">Domain Interests</h3>
+      {% if interests %}
+      <div class="domain-tags">
+        {% for si in interests %}
+        <span class="domain-tag {% if si.is_primary %}primary{% endif %}">{{ si.domain.name }}</span>
+        {% endfor %}
+      </div>
+      {% else %}<p class="text-muted">No domains selected.</p>{% endif %}
+    </div>
+
+    <!-- Teams -->
+    <div class="dash-card">
+      <h3 class="card-title">Teams</h3>
+      {% if teams %}
+      {% for tm in teams %}
+      <div class="team-row">
+        <div class="team-row-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="team-row-body">
+          <a href="{% url 'teams:detail' pk=tm.team.pk %}" class="team-row-name">{{ tm.team.name }}</a>
+          <span class="team-row-sub">{{ tm.team.get_domain_focus_display|default:"General" }} · {{ tm.team_role }}</span>
+        </div>
+        <span class="badge-status-{{ tm.team.status }}">{{ tm.team.get_status_display }}</span>
+      </div>
+      {% endfor %}
+      {% else %}<p class="text-muted">Not in any teams yet.</p>{% endif %}
+    </div>
+
+    {% if profile.achievements %}
+    <div class="dash-card">
+      <h3 class="card-title">Achievements</h3>
+      <p class="achievement-text">{{ profile.achievements }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
