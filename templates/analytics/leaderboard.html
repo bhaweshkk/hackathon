@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div><h1 class="page-title">Leaderboard</h1><p class="page-sub">Top students ranked by hackathon participation and wins</p></div>
+  </div>
+  <div class="dash-card p-0">
+    <table class="leaderboard-table">
+      <thead>
+        <tr><th>#</th><th>Student</th><th>College</th><th>Role</th><th>Hackathons</th><th>Teams</th><th>Wins</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in profiles %}
+        <tr class="{% if forloop.counter <= 3 %}top-{{ forloop.counter }}{% endif %}">
+          <td class="rank-cell">
+            {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
+          </td>
+          <td>
+            <div class="lb-student">
+              <div class="lb-avatar">{{ p.full_name|first|upper }}</div>
+              <span class="lb-name">{{ p.full_name }}</span>
+            </div>
+          </td>
+          <td class="text-muted small">{{ p.college|truncatechars:30 }}</td>
+          <td><span class="role-chip-sm">{{ p.get_preferred_role_display }}</span></td>
+          <td class="text-center"><strong>{{ p.hackathons_participated }}</strong></td>
+          <td class="text-center">{{ p.teams_participated }}</td>
+          <td class="text-center text-success"><strong>{{ p.wins }}</strong></td>
+          <td><a href="{% url 'profiles:detail' pk=p.pk %}" class="btn-sm-primary">Profile</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No data yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
