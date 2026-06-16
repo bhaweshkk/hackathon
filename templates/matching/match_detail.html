@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Match Analysis — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <div class="page-header">
+    <h1 class="page-title">Match Analysis</h1>
+    <p class="page-sub">{{ my_profile.full_name }} ↔ {{ other_profile.full_name }}</p>
+  </div>
+  <div class="dash-card">
+    <div class="match-detail-score">
+      <div class="big-score">{{ result.total|floatformat:0 }}<span>/ 100</span></div>
+      <p class="big-score-label">Overall Match Score</p>
+    </div>
+    <div class="score-breakdown">
+      {% for label, val, max_val in score_breakdown %}
+      <div class="sb-row">
+        <span class="sb-label">{{ label }}</span>
+        <div class="sb-bar-wrap"><div class="sb-bar-fill" style="width: {% widthratio val max_val 100 %}%"></div></div>
+        <span class="sb-val">{{ val|floatformat:1 }} / {{ max_val }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% if result.reasons %}
+    <div class="mt-4">
+      <h4>Why this match?</h4>
+      {% for r in result.reasons %}<div class="reason-item"><i class="bi bi-check-circle-fill text-success me-1"></i>{{ r }}</div>{% endfor %}
+      {% for w in result.warnings %}<div class="reason-item warn"><i class="bi bi-exclamation-circle-fill text-warning me-1"></i>{{ w }}</div>{% endfor %}
+    </div>
+    {% endif %}
+    <div class="mt-4 d-flex gap-3">
+      <a href="{% url 'profiles:detail' pk=other_profile.pk %}" class="btn-primary">View Profile</a>
+      <a href="{% url 'messaging:conversation' user_pk=other_profile.user.pk %}" class="btn-outline">Send Message</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
