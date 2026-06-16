@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Team Invites — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <div class="page-header"><h1 class="page-title">Team Invites</h1></div>
+  {% if invites %}
+    {% for invite in invites %}
+    <div class="dash-card invite-card">
+      <div class="invite-info">
+        <h4>{{ invite.team.name }}</h4>
+        <p class="text-muted">Invited by <strong>{{ invite.sender.username }}</strong> · {{ invite.created_at|timesince }} ago</p>
+        {% if invite.message %}<blockquote class="invite-msg">"{{ invite.message }}"</blockquote>{% endif %}
+      </div>
+      <div class="invite-actions">
+        <form method="post" action="{% url 'teams:respond_invite' invite_pk=invite.pk action='accept' %}" style="display:inline">
+          {% csrf_token %}<button type="submit" class="btn-primary">Accept</button>
+        </form>
+        <form method="post" action="{% url 'teams:respond_invite' invite_pk=invite.pk action='reject' %}" style="display:inline">
+          {% csrf_token %}<button type="submit" class="btn-outline">Decline</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="dash-card empty-state">
+      <i class="bi bi-envelope display-4 text-muted"></i>
+      <p class="mt-3">No pending invites.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
