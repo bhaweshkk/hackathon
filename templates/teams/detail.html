@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}{{ team.name }} — HackTeam AI{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ team.name }}</h1>
+      <p class="page-sub">{{ team.get_domain_focus_display|default:"Open Domain" }} · {{ team.get_status_display }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if is_leader %}
+        <a href="{% url 'teams:edit' pk=team.pk %}" class="btn-outline"><i class="bi bi-pencil me-1"></i>Edit</a>
+      {% endif %}
+      {% if is_member and not is_leader %}
+        <a href="{% url 'messaging:team_chat' team_pk=team.pk %}" class="btn-primary"><i class="bi bi-chat me-1"></i>Team Chat</a>
+        <form method="post" action="{% url 'teams:leave' pk=team.pk %}">{% csrf_token %}
+          <button type="submit" class="btn-danger" onclick="return confirm('Leave this team?')">Leave Team</button>
+        </form>
+      {% endif %}
+      {% if is_member %}
+        <a href="{% url 'messaging:team_chat' team_pk=team.pk %}" class="btn-primary"><i class="bi bi-chat-dots me-1"></i>Team Chat</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="dash-left">
+      <div class="dash-card">
+        <h3 class="card-title">About</h3>
+        <p>{{ team.description|default:"No description provided." }}</p>
+        <div class="info-row"><span class="info-label">Leader</span><span>{{ team.leader.username }}</span></div>
+        <div class="info-row"><span class="info-label">Size</span><span>{{ team.member_count }} / {{ team.max_size }} members</span></div>
+        <div class="info-row"><span class="info-label">Status</span><span class="badge-status-{{ team.status }}">{{ team.get_status_display }}</span></div>
+        {% if team.looking_for_roles %}
+        <div class="info-row">
+          <span class="info-label">Looking for</span>
+          <div>{% for r in team.looking_for_roles.split %}<span class="role-chip">{{ r }}</span>{% endfor %}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Hackathon applications -->
+      <div class="dash-card">
+        <h3 class="card-title">Competition History</h3>
+        {% for app in applications %}
+        <div class="hackathon-row">
+          <div class="hackathon-row-body">
+            <a href="{% url 'hackathons:detail' pk=app.hackathon.pk %}" class="hackathon-row-name">{{ app.hackathon.title }}</a>
+            <span class="hackathon-row-sub">{{ app.hackathon.organizer }}</span>
+          </div>
+          <span class="badge-app-{{ app.status }}">{{ app.get_status_display }}</span>
+        </div>
+        {% empty %}<p class="text-muted small">No competitions applied yet.</p>{% endfor %}
+      </div>
+    </div>
+
+    <div class="dash-right">
+      <div class="dash-card">
+        <h3 class="card-title">Team Members ({{ team.member_count }})</h3>
+        {% for tm in memberships %}
+        <div class="member-row">
+          <div class="member-avatar-sm">{{ tm.profile.full_name|first|upper }}</div>
+          <div class="member-info">
+            <a href="{% url 'profiles:detail' pk=tm.profile.pk %}" class="member-name">{{ tm.profile.full_name }}</a>
+            <span class="member-role">{{ tm.profile.get_preferred_role_display }}</span>
+          </div>
+          <span class="badge-team-role-{{ tm.team_role }}">{{ tm.get_team_role_display }}</span>
+          {% if is_leader and tm.profile.user != request.user %}
+            <a href="{% url 'messaging:conversation' user_pk=tm.profile.user.pk %}" class="btn-icon" title="Message"><i class="bi bi-chat"></i></a>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if is_leader %}
+      <div class="dash-card">
+        <h3 class="card-title">Invite a Student</h3>
+        <form action="{% url 'profiles:list' %}" method="get" class="d-flex gap-2">
+          <input type="text" name="q" placeholder="Search students to invite..." class="form-input flex-grow-1">
+          <input type="hidden" name="invite_for" value="{{ team.pk }}">
+          <button type="submit" class="btn-primary">Search</button>
+        </form>
+        <p class="text-muted small mt-2">Find a student, view their profile, and invite them to this team.</p>
+      </div>
+      {% endif %}
+
+      {% if pending_invites %}
+      <div class="dash-card">
+        <h3 class="card-title">Pending Invites</h3>
+        {% for invite in pending_invites %}
+        <div class="invite-row">
+          <span>{{ invite.recipient.username }}</span>
+          <span class="badge-pending">Pending</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
