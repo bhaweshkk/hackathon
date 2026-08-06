@@ -6,7 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-hackteam-dev-key-change-in-production-2024')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1']
+SECRET_KEY = os.environ.get('SECRET_KEY', 'your-fallback-dev-key')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
